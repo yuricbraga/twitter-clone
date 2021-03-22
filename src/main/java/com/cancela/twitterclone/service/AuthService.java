@@ -1,16 +1,22 @@
 package com.cancela.twitterclone.service;
 
+import com.cancela.twitterclone.dto.request.LoginRequest;
 import com.cancela.twitterclone.dto.request.RegisterRequest;
+import com.cancela.twitterclone.dto.response.LoginResponse;
+import com.cancela.twitterclone.exception.TwitterCloneException;
 import com.cancela.twitterclone.model.User;
 import com.cancela.twitterclone.model.VerificationToken;
 import com.cancela.twitterclone.repository.UserRepository;
 import com.cancela.twitterclone.repository.VerificationTokenRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import javax.validation.constraints.NotBlank;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -48,5 +54,20 @@ public class AuthService {
 
         verificationTokenRepository.save(verificationToken);
         return token;
+    }
+
+    public void verify(String token) {
+        Optional<VerificationToken> verificationToken = verificationTokenRepository.findByToken(token);
+        fetchUserAndEnable(verificationToken.orElseThrow(() -> new TwitterCloneException("Invalid token")));
+    }
+
+    private void fetchUserAndEnable(VerificationToken verificationToken) {
+        User user = verificationToken.getUser();
+        user.setEnabled(true);
+        userRepository.save(user);
+    }
+
+    public LoginResponse login(LoginRequest loginRequest) {
+        //todo
     }
 }
